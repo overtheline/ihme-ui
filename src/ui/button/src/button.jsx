@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 import classNames from 'classnames';
+import { noop } from 'lodash';
 import { CommonPropTypes, PureComponent, propsChanged, stateFromPropUpdates } from '../../../utils';
 
 import styles from './button.css';
@@ -66,6 +67,11 @@ export default class Button extends PureComponent {
 
 Button.propTypes = {
   /**
+   * children of parent component
+   */
+  children: CommonPropTypes.children.isRequired,
+
+  /**
    * className applied to button
    */
   className: CommonPropTypes.className,
@@ -128,7 +134,18 @@ Button.propTypes = {
 };
 
 Button.defaultProps = {
+  className: 'button-component',
+  disabled: false,
   disabledClassName: styles.disabled,
+  disabledStyle: {},
+  icon: false,
+  id: false,
+  name: false,
+  onClick: noop,
+  showSpinner: false,
+  style: {},
+  text: 'Button',
+  theme: 'green',
 };
 
 Button.propUpdates = {
