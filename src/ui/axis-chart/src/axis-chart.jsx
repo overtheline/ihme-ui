@@ -66,18 +66,24 @@ export default class AxisChart extends React.Component {
   }
 
   render() {
-    const { props } = this;
+    const {
+      children,
+      className,
+      clipPath,
+      padding,
+      style,
+    } = this.props;
     const { chartDimensions, scales } = this.state;
     const clipPathId = uniqueId('chartClip_');
 
     return (
       <svg
-        width={`${chartDimensions.width + props.padding.left + props.padding.right}px`}
-        height={`${chartDimensions.height + props.padding.bottom + props.padding.top}px`}
-        className={classNames(props.className)}
-        style={props.style}
+        width={`${chartDimensions.width + padding.left + padding.right}px`}
+        height={`${chartDimensions.height + padding.bottom + padding.top}px`}
+        className={classNames(className)}
+        style={style}
       >
-        {props.clipPath ? (<defs>
+        {clipPath ? (<defs>
           <clipPath id={clipPathId}>
             <rect
               width={`${chartDimensions.width}px`}
@@ -87,12 +93,12 @@ export default class AxisChart extends React.Component {
         </defs>)
         : null
       }
-        <g transform={`translate(${props.padding.left}, ${props.padding.top})`}>
+        <g transform={`translate(${padding.left}, ${padding.top})`}>
           {
-             React.Children.map(props.children, child => child && React.cloneElement(child, {
+             React.Children.map(children, child => child && React.cloneElement(child, {
                scales,
-               padding: props.padding,
-               clipPathId: props.clipPath ? clipPathId : (void 0),
+               padding,
+               clipPathId: clipPath ? clipPathId : (void 0),
                ...chartDimensions,
              }))
            }
@@ -103,6 +109,11 @@ export default class AxisChart extends React.Component {
 }
 
 AxisChart.propTypes = {
+  /**
+   * children of parent component
+   */
+  children: CommonPropTypes.children.isRequired,
+
   /**
    * className applied to outermost svg element
    */
@@ -121,7 +132,8 @@ AxisChart.propTypes = {
   /**
    * delay rendering while fetching data
    */
-  loading: PropTypes.bool,
+  loading: PropTypes.bool, // eslint-disable-line react/no-unused-prop-types
+
 
   /**
    * padding around the chart contents, space for Axis and Label
@@ -146,31 +158,35 @@ AxisChart.propTypes = {
   /**
    * [min, max] for xScale (i.e., the domain of the data)
    */
-  xDomain: PropTypes.array,
+  xDomain: PropTypes.array.isRequired,
 
   /**
    * type of x scale
    * [name of d3 scale scale function](https://github.com/d3/d3-scale)
    */
-  xScaleType: PropTypes.oneOf(SCALE_TYPES),
+  xScaleType: PropTypes.oneOf(SCALE_TYPES).isRequired,
 
   /**
    * [min, max] yScale (i.e., the range of the data)
    */
-  yDomain: PropTypes.array,
+  yDomain: PropTypes.array.isRequired,
 
   /**
    * type of y scale
    * [name of d3 scale scale function](https://github.com/d3/d3-scale)
    */
-  yScaleType: PropTypes.oneOf(SCALE_TYPES),
+  yScaleType: PropTypes.oneOf(SCALE_TYPES).isRequired,
 };
 
 AxisChart.defaultProps = {
+  className: 'axis-chart-svg',
+  clipPath: true,
+  loading: false,
   padding: {
     top: 20,
     right: 20,
     bottom: 30,
     left: 50,
   },
+  style: {},
 };
