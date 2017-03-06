@@ -43,42 +43,58 @@ export default class Axis extends React.Component {
   }
 
   render() {
-    const { props, state } = this;
+    const {
+      className,
+      orientation,
+      ticks,
+      tickArguments,
+      tickSize,
+      tickSizeInner,
+      tickSizeOuter,
+      tickPadding,
+      tickFormat,
+      tickValues,
+      padding,
+      label,
+      labelClassName,
+      labelStyle,
+    } = this.props;
+    const { state } = this;
 
     // create faux DOM element to use as context for D3 side-effects
     const axisG = ReactFauxDom.createElement('g');
     const gSelection = select(axisG)
-      .attr('class', classNames(style.common, props.className))
+      .attr('class', classNames(style.common, className))
       .attr('transform', `translate(${state.translate.x}, ${state.translate.y})`);
 
     // axis generator straight outta d3-axis
-    const axisGenerator = AXIS_TYPES[props.orientation](state.scale);
+    const axisGenerator = AXIS_TYPES[orientation](state.scale);
 
     // if we have configuration for the axis, apply it
-    if (props.ticks) axisGenerator.ticks(props.ticks);
-    if (props.tickArguments) axisGenerator.tickArguments(props.tickArguments);
-    if (props.tickFormat) axisGenerator.tickFormat(props.tickFormat);
-    if (props.tickSize) axisGenerator.tickSize(props.tickSize);
-    if (props.tickSizeInner) axisGenerator.tickSizeInner(props.tickSizeInner);
-    if (props.tickSizeOuter) axisGenerator.tickSizeOuter(props.tickSizeOuter);
-    if (props.tickPadding) axisGenerator.tickPadding(props.tickPadding);
-    if (props.tickValues) axisGenerator.tickValues(props.tickValues);
+    if (ticks) axisGenerator.ticks(ticks);
+    if (tickArguments) axisGenerator.tickArguments(tickArguments);
+    if (tickFormat) axisGenerator.tickFormat(tickFormat);
+    if (tickSize) axisGenerator.tickSize(tickSize);
+    if (tickSizeInner) axisGenerator.tickSizeInner(tickSizeInner);
+    if (tickSizeOuter) axisGenerator.tickSizeOuter(tickSizeOuter);
+    if (tickPadding) axisGenerator.tickPadding(tickPadding);
+    if (tickValues) axisGenerator.tickValues(tickValues);
 
     axisGenerator(gSelection);
 
-    axisG.setAttribute('style', props.style);
+    axisG.setAttribute('style', this.props.style);
 
     const center = mean(state.scale.range());
 
-    const labelPosition = props.label &&
-      calcLabelPosition(props.orientation, state.translate, props.padding, center);
+    const labelPosition = label &&
+      calcLabelPosition(orientation, state.translate, padding, center);
 
     return (
       <g>
         {axisG.toReact()}
-        {props.label && <text
-          className={props.labelClassName}
-          style={props.labelStyle}
+        {label && <text
+          className={labelClassName}
+          style={labelStyle}
           x={labelPosition.x}
           y={labelPosition.y}
           dx={labelPosition.dX}
@@ -86,7 +102,7 @@ export default class Axis extends React.Component {
           transform={`rotate(${labelPosition.rotate || 0})`}
           textAnchor="middle"
         >
-          {props.label}
+          {label}
         </text>}
       </g>
     );
@@ -227,7 +243,11 @@ Axis.propTypes = {
 };
 
 Axis.defaultProps = {
+  className: 'axis-group',
   height: 0,
+  label: false,
+  labelClassName: 'axis-label',
+  labelStyle: {},
   padding: {
     top: 40,
     bottom: 40,
@@ -235,5 +255,15 @@ Axis.defaultProps = {
     right: 50,
   },
   scale: scaleLinear(),
+  style: {},
+  ticks: false,
+  tickArguments: false,
+  tickFormat: false,
+  tickPadding: false,
+  tickSize: false,
+  tickSizeInner: false,
+  tickSizeOuter: false,
+  tickValues: false,
+  translate: false,
   width: 0,
 };
