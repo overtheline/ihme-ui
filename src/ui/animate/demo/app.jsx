@@ -1,120 +1,141 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { maxBy, minBy } from 'lodash';
+import { assign, filter, indexOf, map, maxBy, minBy, range } from 'lodash';
+import { json, scaleOrdinal } from 'd3';
 
 import AxisChart from '../../axis-chart';
+import { Map } from '../../compositions';
 import { MultiLine } from '../../shape';
 import { XAxis, YAxis } from '../../axis';
 import Button from '../../button';
+import FAData from '../../../test-utils/data2.js';
+
+import CacheTree from './cachetree';
+
+const dataConfig = {
+  primaryKeyFields: ['measure', 'risk', 'type', 'location'],
+  seriesKeyFields: [
+    {
+      key: 'year',
+      model: 'exponential',
+    },
+  ],
+  dataKeyField: {
+    key: 'mean',
+    uncertainty: ['mean_lb', 'mean_ub'],
+  },
+};
+
+const dataGenerator = new FAData(dataConfig);
 
 const width = 600;
 const height = 300;
 const padding = { top: 20, bottom: 40, left: 55, right: 20 };
-const yDomain = [0, 100];
-const xDomain = [10, 50];
+const xDomain = [2000, 2025];
 const dataAccessors = {
-  x: 'x',
-  y: 'y',
-  y0: 'y0',
-  y1: 'y1',
+  x: 'year',
+  y: 'mean',
+  y0: 'mean_lb',
+  y1: 'mean_ub',
+};
+const fieldAccessors = {
+  data: 'values',
+  key: 'location',
 };
 const areaStyle = {
   fillOpacity: 0.5,
 };
+const mapStyle = {
+  height,
+  width,
+};
 
-function generateData(n, domain, startRange, uncertainty) {
-  if (n < 2) {
-    console.error('needs more than one point');
-    return [];
-  }
-
-  const data = [];
-  const step = (domain[1] - domain[0]) / (n - 1);
-
-  function getNextY() {
-    const prev = data.length ? data[data.length - 1] : null;
-
-    if (!prev) {
-      const y = (Math.random() * (startRange[1] - startRange[0])) + startRange[0];
-      return {
-        y,
-        y1: y + uncertainty,
-        y0: y - uncertainty,
-      };
-    }
-
-    const y1 = prev.y + uncertainty;
-    const y0 = prev.y - uncertainty;
-    const y = (Math.random() * (y1 - y0)) + y0;
-
-    return {
-      y,
-      y1,
-      y0,
-    };
-
-  }
-
-  for (let i = 0; i < n; i++) {
-    const nextData = getNextY();
-    data.push({
-      x:domain[0] + (step * i),
-      ...nextData,
-    });
-  }
-
-  return data;
-}
+const locationList = [102, 101, 123, 155, 171];
+const measureList = ['A', 'B', 'C', 'D'];
+const colors = ['red', 'blue', 'orange', 'green', 'salmon', 'violet'];
+const colorScale = scaleOrdinal().domain(locationList)
+  .range(map(locationList, (loc, i) => colors[i % colors.length]));
 
 class App extends React.Component {
   constructor(props) {
     super(props);
+    this.cache = new CacheTree(['measure', 'risk', 'type', 'location', 'year']);
 
-    this.dataIndex = 0;
-    this.dataLength = 3;
+    this.state = {
+      settings: {
+        measure: 'A',
+        risk: 123,
+        type: 1,
+        location: locationList,
+        year: range(xDomain[0], (xDomain[1] + 1)),
+      },
+      choroplethSettings: {
+        measure: 'A',
+        risk: 123,
+        type: 1,
+        location: locationList,
+        year: 2000,
+        selectedChoroplethDomain: [0, 1],
+      }
+    };
 
     this.onClick = this.onClick.bind(this);
+    this.onSliderMove = this.onSliderMove.bind(this);
+    this.onResetScale = this.onResetScale.bind(this);
   }
 
   componentWillMount() {
-    const dataA = generateData(20, xDomain, yDomain, 10);
-    const dataB = generateData(20, xDomain, yDomain, 10);
-    const dataC = generateData(20, xDomain, yDomain, 10);
-    const range = [minBy(dataA, 'y0').y0, maxBy(dataA, 'y1').y1];
-    this.setState({
-      dataStore: [
-        {
-          values: dataA,
-          key: 'A',
-        },
-        {
-          values: dataB,
-          key: 'B',
-        },
-        {
-          values: dataC,
-          key: 'C',
-        },
-      ],
-      data: [{
-        values: dataA,
-        key: 'A',
-      }],
-      range,
-    });
+    this.cache.set(dataGenerator.getData(this.state.settings));
   }
 
   onClick() {
-    this.dataIndex += 1;
-    const nextData = this.state.dataStore[this.dataIndex % this.dataLength];
-    const range = [minBy(nextData.values, 'y0').y0, maxBy(nextData.values, 'y1').y1];
-    this.setState({
-      data: [nextData],
-      range,
-    });
+    const settings = this.state.settings;
+    const choroplethSettings = this.state.choroplethSettings;
+
+    const currentMeasure = settings.measure;
+    const index = indexOf(measureList, currentMeasure);
+    const nextMeasure = measureList[(index + 1) % measureList.length];
+
+    const newSettings = assign({}, settings, { measure: nextMeasure });
+    const newChoroplethSettings = assign({}, choroplethSettings, { measure: nextMeasure });
+
+    if (!this.cache.has(newSettings)) {
+      console.log('get settings data');
+      this.cache.set(dataGenerator.getData(newSettings));
+    }
+
+    this.setState(assign({} , this.state, { settings: newSettings, choroplethSettings: newChoroplethSettings }));
+  }
+
+  onSliderMove(selectedChoroplethDomain) {
+    const nextSettings = assign({}, this.state.choroplethSettings, { selectedChoroplethDomain });
+    this.setState(assign({}, this.state, { choroplethSettings: nextSettings }));
+  }
+
+  onResetScale() {
+    const resetSettings = assign({}, this.state.choroplethSettings, { selectedChoroplethDomain: [0, 1] });
+    this.setState(assign({}, this.state, { choroplethSettings: resetSettings }));
   }
 
   render() {
+    const measure = this.state.settings.measure;
+    const timeData = this.cache.get(this.state.settings);
+    const lineData = map(
+      locationList,
+      (location) => {
+        const locationData = filter(timeData, { location });
+        return {
+          location,
+          values: locationData,
+        };
+      }
+    );
+    const choroplethData = this.cache.get(this.state.choroplethSettings);
+    const choroplethRange = [minBy(choroplethData, 'mean').mean, maxBy(choroplethData, 'mean').mean];
+    const selectedChoroplethDomain = this.state.choroplethSettings.selectedChoroplethDomain;
+
+    const yDomain = [minBy(timeData, 'mean_lb').mean_lb, maxBy(timeData, 'mean_ub').mean_ub];
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <div>
@@ -123,26 +144,41 @@ class App extends React.Component {
             onClick={this.onClick}
           />
         </div>
-        {/* <pre><code>
-         </code></pre> */}
         <AxisChart
           width={width}
           height={height}
           padding={padding}
           xDomain={xDomain}
-          yDomain={this.state.range}
+          yDomain={yDomain}
         >
           <MultiLine
             areaStyle={areaStyle}
-            data={this.state.data}
+            colorScale={colorScale}
+            data={lineData}
             dataAccessors={dataAccessors}
+            fieldAccessors={fieldAccessors}
           />
-          <XAxis label="X-Axis" />
-          <YAxis label="Y-Axis" />
+          <XAxis label="Year" />
+          <YAxis label={`measure: ${measure}`} />
         </AxisChart>
+        <Map
+          data={choroplethData}
+          mapStyle={mapStyle}
+          domain={choroplethRange}
+          extentPct={selectedChoroplethDomain}
+          geometryKeyField="properties.loc_id"
+          keyField="location"
+          onSliderMove={this.onSliderMove}
+          onResetScale={this.onResetScale}
+          topology={this.props.topology}
+          valueField="mean"
+        />
       </div>
     );
   }
 }
 
-render(<App />, document.getElementById('app'));
+json("world.topo.json", function(error, topology) {
+  if (error) throw error;
+  render(<App topology={topology} />, document.getElementById('app'));
+});
