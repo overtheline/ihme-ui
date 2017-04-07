@@ -116,6 +116,7 @@ export default class CacheTree {
   }
 
   _check(path, cache, filter) {
+    // const [head, ...rest] = path;
     if (path.length === 0) {
       return true;
     } else if (filter.hasOwnProperty(path[0]) && isArray(filter[path[0]])) {
