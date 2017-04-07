@@ -132,9 +132,9 @@ export default class FAData {
         };
       }
 
-      const t = data.length / n;
+      const t = 4 * (data.length / n);
 
-      const genFn = s => (prev.y * Math.pow(2, s / 10));
+      const genFn = s => (prev.y + (Math.log(3) * Math.pow(3, s)));
 
       const y1 = genFn(t) + uncertainty;
       const y0 = genFn(t) - uncertainty;
@@ -156,6 +156,13 @@ export default class FAData {
     }
 
     return data;
+  }
+
+  static randomModel(domain, startRange = [100, 500], uncertainty = 20) {
+    const models = [FAData.exponential, FAData.randomWalk, FAData.increase];
+    const randomModelIndex = Math.floor(Math.random() * models.length);
+
+    return models[randomModelIndex](domain, startRange, uncertainty);
   }
 
   getData(requestParams) {
