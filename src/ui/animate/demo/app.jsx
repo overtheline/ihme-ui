@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { assign, filter, indexOf, map, maxBy, minBy, range } from 'lodash';
+import { assign, filter, indexOf, isEmpty, map, maxBy, minBy, range, pull } from 'lodash';
 import { json, scaleOrdinal } from 'd3';
 
 import AxisChart from '../../axis-chart';
@@ -17,7 +17,7 @@ const dataConfig = {
   seriesKeyFields: [
     {
       key: 'year',
-      model: 'exponential',
+      model: 'randomModel',
     },
   ],
   dataKeyField: {
@@ -59,9 +59,10 @@ const colorScale = scaleOrdinal().domain(locationList)
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.cache = new CacheTree(['measure', 'risk', 'type', 'location', 'year']);
+    this.cache = new CacheTree(['measure', 'risk', 'type', 'location', 'year'], 1000);
 
     this.state = {
+      cache: this.cache,
       settings: {
         measure: 'A',
         risk: 123,
@@ -82,6 +83,7 @@ class App extends React.Component {
     this.onClick = this.onClick.bind(this);
     this.onSliderMove = this.onSliderMove.bind(this);
     this.onResetScale = this.onResetScale.bind(this);
+    this.onChoroplethClick = this.onChoroplethClick.bind(this);
   }
 
   componentWillMount() {
@@ -101,10 +103,37 @@ class App extends React.Component {
 
     if (!this.cache.has(newSettings)) {
       console.log('get settings data');
-      this.cache.set(dataGenerator.getData(newSettings));
+      const missing = this.cache.getDiff(newSettings);
+      console.log('settings', newSettings);
+      console.log('diff', missing);
+      if (!isEmpty(missing)) {
+        this.cache.set(dataGenerator.getData(missing));
+      }
     }
 
     this.setState(assign({} , this.state, { settings: newSettings, choroplethSettings: newChoroplethSettings }));
+  }
+
+  onChoroplethClick(event, datum, path) {
+    const locId = Number(path.props.feature.properties.loc_id);
+    const locIdIndex = indexOf(locationList, locId);
+    if (locIdIndex < 0) {
+      locationList.push(locId);
+    } else {
+      pull(locationList, locId);
+    }
+
+    const settings = this.state.settings;
+
+    if (!this.cache.has(settings)) {
+      console.log('get settings data');
+      const missing = this.cache.getDiff(settings);
+      console.log('settings', settings);
+      console.log('diff', missing);
+      this.cache.set(dataGenerator.getData(missing));
+    }
+
+    this.setState(assign({}, this.state));
   }
 
   onSliderMove(selectedChoroplethDomain) {
@@ -168,6 +197,7 @@ class App extends React.Component {
           extentPct={selectedChoroplethDomain}
           geometryKeyField="properties.loc_id"
           keyField="location"
+          onClick={this.onChoroplethClick}
           onSliderMove={this.onSliderMove}
           onResetScale={this.onResetScale}
           topology={this.props.topology}
