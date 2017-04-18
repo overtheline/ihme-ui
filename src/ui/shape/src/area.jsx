@@ -11,6 +11,7 @@ import {
   PureComponent,
   stateFromPropUpdates,
 } from '../../../utils';
+import AnimatePath from '../../animate/src/AnimatePath.jsx';
 
 /**
  * `import { Area } from 'ihme-ui'`
@@ -41,6 +42,22 @@ export default class Area extends PureComponent {
     const {
       path,
     } = this.state;
+
+    // check if path should animate.
+    if (true) {
+      return (
+        <AnimatePath
+          className={className && classNames(className)}
+          clipPath={clipPathId && `url(#${clipPathId})`}
+          d={path}
+          onClick={eventHandleWrapper(onClick, data, this)}
+          onMouseLeave={eventHandleWrapper(onMouseLeave, data, this)}
+          onMouseMove={eventHandleWrapper(onMouseMove, data, this)}
+          onMouseOver={eventHandleWrapper(onMouseOver, data, this)}
+          style={style}
+        />
+      );
+    }
 
     return (
       <path
