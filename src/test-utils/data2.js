@@ -38,17 +38,20 @@ export default class FAData {
       if (!prev) {
         const y = (Math.random() * (startRange[1] - startRange[0])) + startRange[0];
         return {
+          ry: yValueInInterval(y - uncertainty, y + uncertainty),
           y,
           y1: y + uncertainty,
           y0: y - uncertainty,
         };
       }
 
-      const y1 = prev.y + uncertainty;
-      const y0 = prev.y - uncertainty;
-      const y = yValueInInterval(y0, y1);
+      const y1 = prev.ry + uncertainty;
+      const y0 = prev.ry - uncertainty;
+      const y = (y0 + y1) / 2;
+      const ry = yValueInInterval(y0, y1);
 
       return {
+        ry,
         y,
         y1,
         y0,
@@ -82,17 +85,20 @@ export default class FAData {
       if (!prev) {
         const y = (Math.random() * (startRange[1] - startRange[0])) + startRange[0];
         return {
+          ry: yValueInInterval(y - uncertainty, y + uncertainty),
           y,
           y1: y + uncertainty,
           y0: y - uncertainty,
         };
       }
 
-      const y1 = prev.y + (1.5 * uncertainty);
-      const y0 = prev.y - (0.5 * uncertainty);
-      const y = yValueInInterval(y0, y1);
+      const y1 = prev.ry + (1.5 * uncertainty);
+      const y0 = prev.ry - (0.5 * uncertainty);
+      const y = (y0 + y1) / 2;
+      const ry = yValueInInterval(y0, y1);
 
       return {
+        ry,
         y,
         y1,
         y0,
@@ -126,6 +132,7 @@ export default class FAData {
       if (!prev) {
         const y = (Math.random() * (startRange[1] - startRange[0])) + startRange[0];
         return {
+          ry: yValueInInterval(y - uncertainty, y + uncertainty),
           y,
           y1: y + uncertainty,
           y0: y - uncertainty,
@@ -138,9 +145,11 @@ export default class FAData {
 
       const y1 = genFn(t) + uncertainty;
       const y0 = genFn(t) - uncertainty;
-      const y = yValueInInterval(y0, y1);
+      const y = (y0 + y1) / 2;
+      const ry = yValueInInterval(y0, y1);
 
       return {
+        ry,
         y,
         y1,
         y0,
@@ -195,10 +204,12 @@ export default class FAData {
       function mapSeriesKeys(seriesKeyObj) {
         const seriesKeyName = seriesKeyObj.key;
         const seriesKeyModel = seriesKeyObj.model;
+        const seriesKeyStartRange = seriesKeyObj.startRange;
+        const seriesKeyUncertainty = seriesKeyObj.uncertainty;
         const seriesValues = requestParams[seriesKeyName];
 
         return map(
-          FAData[seriesKeyModel](seriesValues),
+          FAData[seriesKeyModel](seriesValues, seriesKeyStartRange, seriesKeyUncertainty),
           datum => ({
             [dataKeyField.key]: datum.y,
             [dataKeyField.uncertainty[0]]: datum.y0,
