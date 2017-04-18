@@ -2,7 +2,7 @@ export {
   dataGenerator
 } from './data';
 
-export FAData from './data2';
+export { default as FAData } from './data2';
 
 export {
   getTopoJSON,
