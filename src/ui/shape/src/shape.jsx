@@ -12,6 +12,8 @@ import {
   stateFromPropUpdates,
 } from '../../../utils';
 import { getShape, shapeTypes } from '../../../utils/shape';
+import AnimateShapePath from '../../animate/src/AnimateShapePath.jsx';
+
 
 const SYMBOL_ROTATE = {
   down: 180,
@@ -86,6 +88,26 @@ export default class Shape extends PureComponent {
       translateY,
     } = this.props;
     const { path, rotate, style } = this.state;
+
+    // check if path should animate.
+    if (true) {
+      return (
+        <AnimateShapePath
+          d={path}
+          className={classNames(className, {
+            [selectedClassName]: selected && selectedClassName,
+            [focusedClassName]: focused && focusedClassName,
+          }) || (void 0)}
+          clipPath={clipPathId && `url(#${clipPathId})`}
+          onClick={eventHandleWrapper(onClick, datum, this)}
+          onMouseLeave={eventHandleWrapper(onMouseLeave, datum, this)}
+          onMouseMove={eventHandleWrapper(onMouseMove, datum, this)}
+          onMouseOver={eventHandleWrapper(onMouseOver, datum, this)}
+          style={style}
+          transform={`translate(${translateX}, ${translateY}) rotate(${rotate})`}
+        />
+      );
+    }
 
     return (
       <path
