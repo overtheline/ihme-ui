@@ -5,7 +5,7 @@ import {
   CommonDefaultProps,
 } from '../../../utils';
 
-const AnimatePath = function animatePath(props) {
+const AnimateShapePath = function animateShapePath(props) {
   const {
     className,
     clipPath,
@@ -16,12 +16,14 @@ const AnimatePath = function animatePath(props) {
     onMouseMove,
     onMouseOver,
     style,
+    transform,
   } = props;
 
   return (
     <Animate
       data={{
         d,
+        transform,
       }}
     >
       {data => (
@@ -35,13 +37,14 @@ const AnimatePath = function animatePath(props) {
           onMouseMove={onMouseMove}
           onMouseOver={onMouseOver}
           style={style}
+          transform={data.transform}
         />
       )}
     </Animate>
   );
 };
 
-AnimatePath.propTypes = {
+AnimateShapePath.propTypes = {
   /**
    * className applied to path.
    */
@@ -85,9 +88,11 @@ AnimatePath.propTypes = {
    * inline styles applied to path
    */
   style: CommonPropTypes.style,
+
+  transform: PropTypes.string,
 };
 
-AnimatePath.defaultProps = {
+AnimateShapePath.defaultProps = {
   onClick: CommonDefaultProps.noop,
   onMouseLeave: CommonDefaultProps.noop,
   onMouseMove: CommonDefaultProps.noop,
@@ -99,4 +104,4 @@ AnimatePath.defaultProps = {
   },
 };
 
-export default AnimatePath;
+export default AnimateShapePath;
