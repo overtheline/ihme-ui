@@ -29,6 +29,7 @@ export default class Area extends PureComponent {
 
   render() {
     const {
+      animate,
       className,
       clipPathId,
       data,
@@ -44,7 +45,7 @@ export default class Area extends PureComponent {
     } = this.state;
 
     // check if path should animate.
-    if (true) {
+    if (animate) {
       return (
         <AnimatePath
           className={className && classNames(className)}
@@ -75,6 +76,7 @@ export default class Area extends PureComponent {
 }
 
 Area.propTypes = {
+  animate: PropTypes.shape({}),
   /**
    * className applied to path.
    */

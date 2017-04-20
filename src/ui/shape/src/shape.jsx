@@ -73,6 +73,7 @@ export default class Shape extends PureComponent {
 
   render() {
     const {
+      animate,
       className,
       clipPathId,
       datum,
@@ -90,7 +91,7 @@ export default class Shape extends PureComponent {
     const { path, rotate, style } = this.state;
 
     // check if path should animate.
-    if (true) {
+    if (animate) {
       return (
         <AnimateShapePath
           d={path}
@@ -129,6 +130,7 @@ export default class Shape extends PureComponent {
 }
 
 Shape.propTypes = {
+  animate: PropTypes.shape({}),
   /**
    * Class name applied to path.
    */

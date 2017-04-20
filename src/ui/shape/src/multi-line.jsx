@@ -46,6 +46,7 @@ export default class MultiLine extends PureComponent {
     } = fieldAccessors;
 
     const childProps = pick(this.props, [
+      'animate',
       'onClick',
       'onMouseLeave',
       'onMouseMove',
@@ -113,6 +114,7 @@ export default class MultiLine extends PureComponent {
 }
 
 MultiLine.propTypes = {
+  animate: PropTypes.shape({}),
   /**
    * classname applied to `<Area/>`s that are children of MultiLine, if applicable
    */

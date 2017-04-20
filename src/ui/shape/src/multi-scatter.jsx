@@ -34,6 +34,7 @@ export default class MultiScatter extends PureComponent {
     } = fieldAccessors;
 
     const childProps = pick(this.props, [
+      'animate',
       'colorScale',
       'dataAccessors',
       'focus',
@@ -88,6 +89,7 @@ export default class MultiScatter extends PureComponent {
 }
 
 MultiScatter.propTypes = {
+  animate: PropTypes.shape({}),
   /**
    * className applied to outermost wrapping `<g>`.
    */
